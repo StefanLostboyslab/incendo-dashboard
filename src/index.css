@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-tron-bg text-tron-text antialiased;
+    /* Optional: Add a subtle grid background */
+    background-image:
+      linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+}
+
+@layer components {
+  .tron-panel {
+    @apply bg-tron-panel backdrop-blur-md border border-tron-border rounded-xl;
+  }
+
+  .tron-input {
+    @apply bg-black/40 border border-tron-border text-tron-cyan rounded-lg px-4 py-2 focus:outline-none focus:border-tron-cyan focus:shadow-neon-cyan transition-all;
+  }
+
+  .tron-button {
+    @apply px-4 py-2 rounded-lg font-bold uppercase tracking-wider transition-all duration-300 border border-tron-cyan text-tron-cyan hover:bg-tron-cyan/10 hover:shadow-neon-cyan;
+  }
+
+  .tron-button-primary {
+    @apply px-4 py-2 rounded-lg font-bold uppercase tracking-wider transition-all duration-300 bg-tron-cyan text-black hover:bg-tron-cyanHover hover:shadow-neon-cyan border border-transparent;
+  }
+}
