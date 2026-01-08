@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDevices } from '../store/DeviceContext';
-import { Card, StatusBadge, Button, Input } from './UIComponents';
-import { Monitor, Wifi, MapPin } from 'lucide-react';
+import { Input } from './UIComponents';
+import { DeviceCard } from './DeviceCard';
 
 export const DeviceGrid: React.FC = () => {
     const { devices } = useDevices();
@@ -32,36 +32,7 @@ export const DeviceGrid: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredDevices.map(device => (
-                    <Card key={device.serialNumber} className="hover:border-tron-cyan/50 transition-colors">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-tron-cyan/5 border border-tron-cyan/20">
-                                    <Monitor className="text-tron-cyan" size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-white text-lg leading-none">{device.name}</h4>
-                                    <span className="text-xs font-mono text-tron-muted">{device.serialNumber}</span>
-                                </div>
-                            </div>
-                            <StatusBadge status={device.status} />
-                        </div>
-
-                        <div className="space-y-2 mb-6">
-                            <div className="flex items-center gap-2 text-sm text-tron-muted">
-                                <MapPin size={14} />
-                                <span>{device.location}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-tron-muted">
-                                <Wifi size={14} />
-                                <span>{device.ipAddress || 'Unknown IP'}</span>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-2 mt-auto">
-                            <Button variant="secondary" className="flex-1 text-xs py-2">PING</Button>
-                            <Button variant="primary" className="flex-1 text-xs py-2">CONTROL</Button>
-                        </div>
-                    </Card>
+                    <DeviceCard key={device.serialNumber} device={device} />
                 ))}
 
                 {filteredDevices.length === 0 && (
@@ -73,3 +44,4 @@ export const DeviceGrid: React.FC = () => {
         </div>
     );
 };
+

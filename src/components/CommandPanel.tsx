@@ -1,38 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMQTT } from '../store/MQTTContext';
 import { useDevices } from '../store/DeviceContext';
 import { Card, Button, Input } from './UIComponents';
-import { Zap, Link as LinkIcon } from 'lucide-react';
+import { Zap, Link as LinkIcon, ChevronDown, Monitor } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { fetchWhattProduct } from '../lib/whatt';
+
+import { useActivity } from '../store/ActivityContext';
 
 export const CommandPanel: React.FC = () => {
     const { publish, status } = useMQTT();
-    const { devices } = useDevices();
-    const [targetType, setTargetType] = useState<'all' | 'specific'>('all');
-    const [selectedDevice, setSelectedDevice] = useState<string>('');
+    const { devices, updateDeviceDetails } = useDevices();
+    const { addLog } = useActivity();
+
     const [dppUrl, setDppUrl] = useState('');
+    const [selectedDeviceSerial, setSelectedDeviceSerial] = useState<string>('');
     const [isSending, setIsSending] = useState(false);
 
-    const handleBurn = async (e: React.FormEvent) => {
+    // Auto-select first device if none selected and devices exist
+    useEffect(() => {
+        if (!selectedDeviceSerial && devices.length > 0) {
+            setSelectedDeviceSerial(devices[0].serialNumber);
+        }
+    }, [devices, selectedDeviceSerial]);
+
+    const handleSendConfig = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!dppUrl) return;
+        if (!dppUrl || !selectedDeviceSerial) return;
 
         setIsSending(true);
+        addLog('system', `Provisioning Device ${selectedDeviceSerial}`, `URL: ${dppUrl}`);
 
-        const payload = JSON.stringify({
-            command: 'burn_nfc',
-            url: dppUrl,
-            timestamp: new Date().toISOString()
-        });
+        const topic = `incendo/dpp_url/${selectedDeviceSerial}`;
 
-        if (targetType === 'all') {
-            // Broadcast to all devices listening on the proper topic
-            // Assuming a general command topic or iterating through devices
-            // For now, let's iterate to be safe if no group topic exists
-            devices.forEach(device => {
-                publish(`incendo/devices/${device.serialNumber}/command`, payload);
+        // Publish URL to specific device topic
+        publish(topic, dppUrl);
+
+        try {
+            // Fetch Rich Metadata
+            const productData = await fetchWhattProduct(dppUrl);
+
+            // Update local device state
+            updateDeviceDetails(selectedDeviceSerial, {
+                provisionedDppUrl: dppUrl,
+                productMetadata: productData ? {
+                    name: productData.name,
+                    productCode: productData.product_number,
+                    imageUrl: productData.main_image
+                } : undefined
             });
-        } else if (selectedDevice) {
-            publish(`incendo/devices/${selectedDevice}/command`, payload);
+            addLog('success', `Provisioned ${selectedDeviceSerial}`, productData ? `Product: ${productData.name}` : undefined);
+        } catch (err) {
+            addLog('error', `Failed to fetch product data`, String(err));
+            console.error('Failed to update device details', err);
+            // Fallback to just URL if fetch fails
+            updateDeviceDetails(selectedDeviceSerial, { provisionedDppUrl: dppUrl });
         }
 
         // Simulate network delay for effect
@@ -41,50 +63,41 @@ export const CommandPanel: React.FC = () => {
         setDppUrl('');
     };
 
-    return (
-        <Card title="COMMAND & CONTROL" className="h-full border-tron-cyan/50 shadow-neon-cyan/20">
-            <form onSubmit={handleBurn} className="space-y-6">
+    const selectedDevice = devices.find(d => d.serialNumber === selectedDeviceSerial);
 
-                {/* Target Selection */}
-                <div className="space-y-3">
-                    <label className="text-xs font-mono text-tron-muted uppercase tracking-wider">TARGET DEVICES</label>
-                    <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                                type="radio"
-                                name="target"
-                                checked={targetType === 'all'}
-                                onChange={() => setTargetType('all')}
-                                className="accent-tron-cyan"
-                            />
-                            <span className="text-sm font-mono group-hover:text-tron-cyan transition-colors">ALL FLEET</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                                type="radio"
-                                name="target"
-                                checked={targetType === 'specific'}
-                                onChange={() => setTargetType('specific')}
-                                className="accent-tron-cyan"
-                            />
-                            <span className="text-sm font-mono group-hover:text-tron-cyan transition-colors">SPECIFIC_ID</span>
-                        </label>
+    return (
+        <Card title="DEVICE PROVISIONING" className="h-full border-tron-cyan/50 shadow-neon-cyan/20">
+            <form onSubmit={handleSendConfig} className="space-y-6">
+
+                {/* Device Selector */}
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-tron-muted uppercase tracking-wider block">Target Device</label>
+                    <div className="relative">
+                        <select
+                            value={selectedDeviceSerial}
+                            onChange={(e) => setSelectedDeviceSerial(e.target.value)}
+                            className="w-full bg-black/40 border border-tron-cyan/30 rounded-lg p-3 text-sm text-white appearance-none focus:outline-none focus:border-tron-cyan/80 font-mono"
+                            disabled={devices.length === 0}
+                        >
+                            {devices.length === 0 ? (
+                                <option>No devices connected</option>
+                            ) : (
+                                devices.map(device => (
+                                    <option key={device.serialNumber} value={device.serialNumber}>
+                                        {device.customName || device.name} ({device.serialNumber})
+                                    </option>
+                                ))
+                            )}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-tron-cyan pointer-events-none" size={16} />
                     </div>
 
-                    {targetType === 'specific' && (
-                        <select
-                            className="tron-input w-full mt-2"
-                            value={selectedDevice}
-                            onChange={(e) => setSelectedDevice(e.target.value)}
-                            required
-                        >
-                            <option value="">-- SELECT ID --</option>
-                            {devices.map(d => (
-                                <option key={d.serialNumber} value={d.serialNumber}>
-                                    {d.name} ({d.serialNumber})
-                                </option>
-                            ))}
-                        </select>
+                    {/* Topic Preview */}
+                    {selectedDeviceSerial && (
+                        <div className="p-2 bg-tron-cyan/5 border border-dashed border-tron-cyan/20 rounded text-[10px] font-mono text-tron-cyan/80 flex items-center gap-2">
+                            <span className="opacity-50">TOPIC:</span>
+                            incendo/dpp_url/{selectedDeviceSerial}
+                        </div>
                     )}
                 </div>
 
@@ -95,7 +108,7 @@ export const CommandPanel: React.FC = () => {
                         <span className="font-bold font-orbitron text-sm">DPP SOURCE URL</span>
                     </div>
                     <Input
-                        placeholder="https://dpp.whatt.io/..."
+                        placeholder="https://whatt.io/device-..."
                         value={dppUrl}
                         onChange={(e) => setDppUrl(e.target.value)}
                         required={true}
@@ -109,10 +122,10 @@ export const CommandPanel: React.FC = () => {
                         type="submit"
                         variant="primary"
                         className="w-full flex justify-between items-center group"
-                        disabled={status !== 'connected' || isSending}
+                        disabled={status !== 'connected' || isSending || !selectedDeviceSerial}
                         isLoading={isSending}
                     >
-                        <span>EXECUTE BURN</span>
+                        <span>SEND CONFIGURATION</span>
                         <Zap size={18} className="group-hover:text-black text-tron-cyan transition-colors" />
                     </Button>
                     {status !== 'connected' && (

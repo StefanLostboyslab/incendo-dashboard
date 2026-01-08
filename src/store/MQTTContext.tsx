@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import mqtt, { MqttClient, type IClientOptions } from 'mqtt';
+import mqtt, { type MqttClient, type IClientOptions } from 'mqtt';
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
@@ -8,8 +8,9 @@ interface MQTTContextType {
     status: ConnectionStatus;
     connect: (options: IClientOptions) => void;
     disconnect: () => void;
-    publish: (topic: string, message: string) => void;
+    publish: (topic: string, message: string, options?: mqtt.IClientPublishOptions) => void;
     subscribe: (topic: string) => void;
+    unsubscribe: (topic: string) => void;
     lastMessage: { topic: string; payload: string } | null;
 }
 
@@ -62,9 +63,9 @@ export const MQTTProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [client]);
 
-    const publish = useCallback((topic: string, message: string) => {
+    const publish = useCallback((topic: string, message: string, options?: mqtt.IClientPublishOptions) => {
         if (client?.connected) {
-            client.publish(topic, message);
+            client.publish(topic, message, options);
         } else {
             console.warn('Cannot publish: MQTT not connected');
         }
@@ -78,8 +79,16 @@ export const MQTTProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [client]);
 
+    const unsubscribe = useCallback((topic: string) => {
+        if (client?.connected) {
+            client.unsubscribe(topic, (err) => {
+                if (err) console.error('Unsubscribe error:', err);
+            });
+        }
+    }, [client]);
+
     return (
-        <MQTTContext.Provider value={{ client, status, connect, disconnect, publish, subscribe, lastMessage }}>
+        <MQTTContext.Provider value={{ client, status, connect, disconnect, publish, subscribe, unsubscribe, lastMessage }}>
             {children}
         </MQTTContext.Provider>
     );

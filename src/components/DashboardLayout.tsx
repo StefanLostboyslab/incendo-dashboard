@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Radio, Settings, Activity } from 'lucide-react';
+import { LayoutDashboard, Radio, Settings, Activity, Lightbulb } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useMQTT } from '../store/MQTTContext';
 
@@ -52,6 +52,7 @@ export const DashboardLayout: React.FC<{
 
                 <nav className="flex-1 p-4 space-y-2">
                     <NavItem icon={LayoutDashboard} label="DASHBOARD" active={activeView === 'dashboard'} onClick={() => onNavigate('dashboard')} />
+                    <NavItem icon={Lightbulb} label="LIGHTS" active={activeView === 'lights'} onClick={() => onNavigate('lights')} />
                     <NavItem icon={Radio} label="DEVICES" active={activeView === 'devices'} onClick={() => onNavigate('devices')} />
                     <NavItem icon={Activity} label="ACTIVITY" active={activeView === 'activity'} onClick={() => onNavigate('activity')} />
                     <NavItem icon={Settings} label="SETTINGS" active={activeView === 'settings'} onClick={() => onNavigate('settings')} />

@@ -4,7 +4,7 @@ import { Button, Input, Card } from './UIComponents';
 import { Wifi, AlertTriangle } from 'lucide-react';
 
 export const SettingsPanel: React.FC = () => {
-    const { connect, status, disconnect } = useMQTT();
+    const { connect, status, disconnect, publish } = useMQTT();
     const [brokerUrl, setBrokerUrl] = useState('ws://homeassistant.local:1884');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -35,8 +35,8 @@ export const SettingsPanel: React.FC = () => {
                 connect({
                     hostname: new URL(brokerUrl).hostname,
                     port: Number(new URL(brokerUrl).port) || 9001,
-                    protocol: 'ws',
-                    path: '/mqtt', // Default for many brokers over WS
+                    protocol: new URL(brokerUrl).protocol.replace(':', '') as 'ws' | 'wss',
+                    path: new URL(brokerUrl).pathname === '/' ? '/mqtt' : new URL(brokerUrl).pathname,
                     username: username || undefined,
                     password: password || undefined,
                 });
@@ -47,8 +47,8 @@ export const SettingsPanel: React.FC = () => {
                 connect({
                     hostname: url.hostname,
                     port: Number(url.port) || 9001,
-                    protocol: 'ws',
-                    path: '/mqtt',
+                    protocol: url.protocol.replace(':', '') as 'ws' | 'wss',
+                    path: url.pathname === '/' ? '/mqtt' : url.pathname,
                     username: username || undefined,
                     password: password || undefined,
                 });
@@ -81,7 +81,7 @@ export const SettingsPanel: React.FC = () => {
                             <p className="text-xs text-yellow-500/90 font-mono leading-relaxed">
                                 IMPORTANT: Your MQTT broker must have WebSockets enabled.
                                 <br />Standard TCP/IP ports (1883) will NOT work in the browser.
-                                <br />Common WS ports: <strong>1884, 8083, 9001</strong>.
+                                <br />Your WS ports: <strong>1884 (WS)</strong> or <strong>8884 (WSS)</strong>.
                             </p>
                         </div>
 
@@ -137,6 +137,51 @@ export const SettingsPanel: React.FC = () => {
                         </div>
                     </div>
                 </Card>
+                <div className="pt-6 border-t border-tron-border/30">
+                    <h3 className="font-orbitron font-bold text-lg text-white mb-4">DEVELOPER TOOLS</h3>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (status !== 'connected') {
+                                alert("Must be connected to MQTT to simulate discovery.");
+                                return;
+                            }
+                            const mockId = `incendo_${Math.random().toString(16).substr(2, 6)}`;
+                            const payload = JSON.stringify({
+                                id: mockId,
+                                name: `Simulated Unit ${mockId.substr(-4)}`,
+                                type: 'simulation',
+                                ip: '192.168.0.0',
+                                mac: '00:00:00:00:00:00',
+                                dpp_url: 'https://whatt.io/test',
+                                features: ['light']
+                            });
+                            publish(`incendo/discovery/${mockId}`, payload, { retain: true });
+                        }}
+                        className="w-full py-3 bg-tron-bg border border-dashed border-tron-cyan/30 text-tron-cyan font-mono text-xs hover:bg-tron-cyan/10 transition-colors rounded-lg mb-2"
+                    >
+                        SIMULATE NEW DEVICE DISCOVERY (MQTT)
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            // Pongs for all known simulated devices? Or just a random one.
+                            // Let's iterate user specific devices if we could... 
+                            // Simplified: Just broadcast a Pong for a hardcoded ID or instructions to ping first.
+                            // Better: A "Universal Pong Responder" simulation mode?
+                            // Let's just create a button that sends a PONG for 'incendo_001' or similar if it exists.
+                            // Or just asks user to input ID.
+                            const id = prompt("Enter Device ID to Pong:");
+                            if (id) {
+                                publish(`incendo/devices/${id}/pong`, JSON.stringify({ timestamp: Date.now() }));
+                            }
+                        }}
+                        className="w-full py-3 bg-tron-bg border border-dashed border-tron-success/30 text-tron-success font-mono text-xs hover:bg-tron-success/10 transition-colors rounded-lg"
+                    >
+                        SIMULATE PONG RESPONSE
+                    </button>
+                </div>
             </div>
         </div>
     );
