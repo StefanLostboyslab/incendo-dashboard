@@ -1,0 +1,26 @@
+services:
+  dashboard:
+    build:
+      context: .
+      args:
+        - VITE_MQTT_BROKER_URL=${VITE_MQTT_BROKER_URL}
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      # This allows the client to know where to connect. 
+      # Replace 'localhost' with your LAN IP in the .env file if needed.
+      - VITE_MQTT_BROKER_URL=${VITE_MQTT_BROKER_URL:-ws://localhost:1884}
+    depends_on:
+      - mqtt
+
+  mqtt:
+    image: eclipse-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883" # TCP for devices
+      - "1884:1884" # WebSocket for Dashboard
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
