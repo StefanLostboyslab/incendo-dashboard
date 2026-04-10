@@ -6,8 +6,8 @@ import { Wifi, AlertTriangle, Activity } from 'lucide-react';
 export const SettingsPanel: React.FC = () => {
     const { connect, status, disconnect, publish } = useMQTT();
     const [brokerUrl, setBrokerUrl] = useState(`ws://${window.location.hostname}:1884`);
-    const [username, setUsername] = useState('arduino');
-    const [password, setPassword] = useState('2look@R2D2');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
 
     // Global EPCIS Settings
     const [globalBizLocation, setGlobalBizLocation] = useState('');

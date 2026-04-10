@@ -78,7 +78,7 @@ export const DashboardLayout: React.FC<{
                     </div>
                     <div className="flex items-center gap-4">
                         <UserWidget />
-                        <div className="text-xs font-mono text-tron-muted">V3.0.0-Q</div>
+                        <div className="text-xs font-mono text-tron-muted">V3.0.1-Q</div>
                     </div>
                 </header>
 
