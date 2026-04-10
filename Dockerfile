@@ -1,7 +1,7 @@
-FROM node:20-alpine
+# Stage 1: Build the React Application
+FROM node:20-alpine AS builder
 
 WORKDIR /app
-
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -13,8 +13,16 @@ ENV VITE_MQTT_BROKER_URL=$VITE_MQTT_BROKER_URL
 
 RUN npm run build
 
-# Expose Vite's default port
+# Stage 2: Serve the app with Nginx
+FROM nginx:alpine
+
+# Copy the build output from the builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Replace default Nginx config if custom one exists (Optional)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 8080 as configured in nginx.conf
 EXPOSE 8080
 
-# Run vite preview to serve the built app on LAN
-CMD ["npm", "run", "preview", "--", "--host", "--port", "8080"]
+CMD ["nginx", "-g", "daemon off;"]
