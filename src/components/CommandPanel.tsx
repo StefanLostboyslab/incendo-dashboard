@@ -70,14 +70,13 @@ export const CommandPanel: React.FC<{ targetSerial: string }> = ({ targetSerial 
     const handleLevelChange = (level: 'custom' | 'model' | 'unit') => {
         setWriteLevel(level);
         if (level === 'custom') {
-            setDppUrl('');
             return;
         }
 
-        const baseUrl = device?.epcis?.sgtin || device?.provisionedDppUrl;
+        const baseUrl = device?.epcis?.sgtin || device?.provisionedDppUrl || dppUrl;
 
         if (!baseUrl) {
-            alert("No Product URL configured for this device. Please edit the configuration or supply a custom URL first.");
+            alert("No Product URL configured. Please paste a URL into the box or edit the device config.");
             setWriteLevel('custom');
             return;
         }
