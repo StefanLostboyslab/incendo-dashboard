@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useDevices } from '../store/DeviceContext';
 import { useMQTT } from '../store/MQTTContext';
 import { ArrowLeft, Monitor, Trash2, Pencil, Activity, MapPin, Cpu, Bot, Copy, Check, LayoutTemplate, Download } from 'lucide-react';
@@ -312,7 +312,7 @@ export const DeviceDetail: React.FC<DeviceDetailProps> = ({ serialNumber, onBack
                             <StatusBadge status={device.status} />
                         </h1>
                         <p className="text-tron-cyan/70 font-mono text-sm tracking-widest uppercase">
-                            {device.serialNumber} • MAC: {device.macAddress || 'N/A'} • {location || device.location}
+                            {device.serialNumber} â€¢ MAC: {device.macAddress || 'N/A'} â€¢ {location || device.location}
                         </p>
                     </div>
                 </div>
@@ -652,7 +652,7 @@ Generate the complete \`setup()\` and \`loop()\` routines integrating these comp
                                 </div>
                                 <div className="bg-black/60 border border-tron-cyan/10 rounded-lg p-3 overflow-hidden">
                                     <p className="text-[10px] font-mono text-tron-cyan/70 whitespace-pre-wrap leading-relaxed">
-                                        Click "COPY PROMPT" to grab the dynamically generated C++ layout string for this configuration.
+                                        Click "COPY PROMPT" to copy the exact configuration block needed at the top of your sketch.
                                     </p>
                                 </div>
                             </div>
@@ -726,3 +726,4 @@ Generate the complete \`setup()\` and \`loop()\` routines integrating these comp
         </div>
     );
 };
+
