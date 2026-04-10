@@ -102,19 +102,27 @@ export const fetchWhattProduct = async (url: string, token?: string): Promise<Wh
             return null;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
         let response;
-        if (productId && token) {
-            console.log(`Fetching whatt product via API: /api/v2/product/${productId}/show`);
-            response = await fetch(`/api/whatt/api/v2/product/${productId}/show`, {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'accept': 'application/json'
-                }
-            });
-        } else {
-            const proxyUrl = `/api/whatt${path}${path.includes('?') ? '&' : '?'}format=json`;
-            console.log('Fetching whatt product via proxy:', proxyUrl);
-            response = await fetch(proxyUrl);
+        try {
+            if (productId && token) {
+                console.log(`Fetching whatt product via API: /api/v2/product/${productId}/show`);
+                response = await fetch(`/api/whatt/api/v2/product/${productId}/show`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'accept': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+            } else {
+                const proxyUrl = `/api/whatt${path}${path.includes('?') ? '&' : '?'}format=json`;
+                console.log('Fetching whatt product via proxy:', proxyUrl);
+                response = await fetch(proxyUrl, { signal: controller.signal });
+            }
+        } finally {
+            clearTimeout(timeoutId);
         }
 
         if (!response.ok) {
