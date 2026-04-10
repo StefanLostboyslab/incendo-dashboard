@@ -100,13 +100,15 @@ export const SettingsPanel: React.FC = () => {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex gap-3">
-                            <AlertTriangle className="text-yellow-500 shrink-0" size={20} />
-                            <p className="text-xs text-yellow-500/90 font-mono leading-relaxed">
-                                IMPORTANT: Since the dashboard runs in your browser, it uses WebSockets (ws://) instead of standard TCP.
-                                <br />By default, this should point to the exact same IP you typed in the URL bar, but on port <strong>1884</strong>.
-                            </p>
-                        </div>
+                        {status !== 'connected' && (
+                            <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex gap-3 transition-all duration-300">
+                                <AlertTriangle className="text-yellow-500 shrink-0" size={20} />
+                                <p className="text-xs text-yellow-500/90 font-mono leading-relaxed">
+                                    IMPORTANT: Since the dashboard runs in your browser, it uses WebSockets (ws://) instead of standard TCP.
+                                    <br />By default, this should point to the exact same IP you typed in the URL bar, but on port <strong>1884</strong>.
+                                </p>
+                            </div>
+                        )}
 
                         <Input
                             label="Broker URL (WebSocket)"
@@ -134,8 +136,13 @@ export const SettingsPanel: React.FC = () => {
                     </div>
 
                     <div className="pt-4 flex justify-end">
-                        <Button type="submit" isLoading={status === 'connecting'} className="min-w-[150px]">
-                            {status === 'connected' ? 'RECONNECT' : 'CONNECT'}
+                        <Button 
+                            type="submit" 
+                            isLoading={status === 'connecting'} 
+                            variant={status === 'connected' ? 'ghost' : 'primary'}
+                            className={`min-w-[150px] ${status === 'connected' ? 'text-tron-success hover:text-tron-success bg-tron-success/5 border border-tron-success/20' : ''}`}
+                        >
+                            {status === 'connected' ? 'CONNECTED ✓' : 'CONNECT'}
                         </Button>
                     </div>
                 </form>
