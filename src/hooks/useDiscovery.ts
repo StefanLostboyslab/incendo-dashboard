@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useMQTT } from '../store/MQTTContext';
 import { useDevices } from '../store/DeviceContext';
+import { useActivity } from '../store/ActivityContext';
 import type { Device } from '../store/types';
 
 export const useDiscovery = () => {
     const { client, subscribe, lastMessage } = useMQTT();
     const { devices, addDevice, updateDeviceDetails } = useDevices();
+    const { addEpcisEvent, addLog } = useActivity();
 
     // Subscribe to discovery topic
     useEffect(() => {
@@ -71,6 +73,44 @@ export const useDiscovery = () => {
                         const eventData = JSON.parse(payload);
                         console.log(`[NFC Event] Device ${deviceId} scanned:`, eventData);
                         const device = devices.find((d: Device) => d.serialNumber === deviceId);
+                        
+                        // Handle EPCIS Digital Proof Logging
+                        if (eventData.uid === 'BATCH_WRITE_OK' || eventData.uid === 'UNIT_WRITE_OK') {
+                            if (device) {
+                                const readPoint = device.epcis?.readPoint || `urn:epc:id:sgln:${device.serialNumber}.0`;
+                                const bizLocation = device.epcis?.bizLocation || readPoint;
+                                const targetUrl = eventData.dpp_url || device.provisionedDppUrl || `https://whatt.io/${device.serialNumber}`;
+                                
+                                const epcisDocument = {
+                                    "@context": ["https://gs1.github.io/EPCIS/epcis-context.jsonld"],
+                                    "type": "ObjectEvent",
+                                    "action": "ADD",
+                                    "bizStep": "commissioning",
+                                    "disposition": "active",
+                                    "epcList": [targetUrl],
+                                    "eventTime": new Date().toISOString(),
+                                    "eventTimeZoneOffset": "+00:00",
+                                    "readPoint": { "id": readPoint },
+                                    "bizLocation": { "id": bizLocation },
+                                    "ilmd": {
+                                        "deviceType": device.deviceType,
+                                        "firmwareVersion": device.version,
+                                        "whattio:fabricatedUnitSerial": device.macAddress
+                                    }
+                                };
+
+                                addEpcisEvent({
+                                    action: 'ADD',
+                                    bizStep: 'commissioning',
+                                    target: targetUrl,
+                                    device: device.name || deviceId,
+                                    epcisDocument
+                                });
+                                
+                                addLog('success', `Commissioning Event Recorded: ${eventData.uid === 'BATCH_WRITE_OK' ? 'Batch Level' : 'Unit Level'}`, targetUrl);
+                            }
+                        }
+
                         if (device) {
                             const newEvent = {
                                 uid: eventData.uid || 'UNKNOWN',
@@ -88,5 +128,5 @@ export const useDiscovery = () => {
                 }
             }
         }
-    }, [lastMessage, addDevice, devices, updateDeviceDetails]);
+    }, [lastMessage, addDevice, devices, updateDeviceDetails, addEpcisEvent, addLog]);
 };

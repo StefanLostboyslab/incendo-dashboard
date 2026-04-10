@@ -8,10 +8,23 @@ export interface LogEntry {
     details?: string;
 }
 
+export interface EpcisEvent {
+    id: string;
+    timestamp: Date;
+    action: 'ADD' | 'OBSERVE';
+    bizStep: string;
+    target: string;
+    device: string;
+    epcisDocument: any;
+}
+
 interface ActivityContextType {
     logs: LogEntry[];
+    epcisEvents: EpcisEvent[];
     addLog: (type: LogEntry['type'], message: string, details?: string) => void;
+    addEpcisEvent: (eventRaw: Omit<EpcisEvent, 'id' | 'timestamp'>) => void;
     clearLogs: () => void;
+    clearEpcis: () => void;
 }
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
@@ -26,6 +39,7 @@ export const useActivity = () => {
 
 export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [logs, setLogs] = useState<LogEntry[]>([]);
+    const [epcisEvents, setEpcisEvents] = useState<EpcisEvent[]>([]);
 
     const addLog = (type: LogEntry['type'], message: string, details?: string) => {
         setLogs(prev => {
@@ -40,10 +54,22 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
     };
 
+    const addEpcisEvent = (eventRaw: Omit<EpcisEvent, 'id' | 'timestamp'>) => {
+        setEpcisEvents(prev => {
+            const newEvent: EpcisEvent = {
+                id: Math.random().toString(36).substr(2, 9),
+                timestamp: new Date(),
+                ...eventRaw
+            };
+            return [...prev, newEvent].slice(-100); // Keep last 100
+        });
+    };
+
     const clearLogs = () => setLogs([]);
+    const clearEpcis = () => setEpcisEvents([]);
 
     return (
-        <ActivityContext.Provider value={{ logs, addLog, clearLogs }}>
+        <ActivityContext.Provider value={{ logs, epcisEvents, addLog, addEpcisEvent, clearLogs, clearEpcis }}>
             {children}
         </ActivityContext.Provider>
     );
