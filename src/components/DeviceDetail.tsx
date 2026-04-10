@@ -207,6 +207,11 @@ export const DeviceDetail: React.FC<DeviceDetailProps> = ({ serialNumber, onBack
     const displayName = device.epcis?.readPoint ? device.epcis.readPoint.split(':').pop() : device.name || device.serialNumber;
 
     const handleLocateTarget = () => {
+        if (!window.isSecureContext) {
+            alert("Browser Security Block: Automatic GPS fetching requires an HTTPS connection or 'localhost'. Please manually enter your coordinates (e.g., from Google Maps) since you are accessing via a local IP address.");
+            return;
+        }
+
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition((position) => {
                 const newGeo = `geo:${position.coords.latitude.toFixed(6)},${position.coords.longitude.toFixed(6)}`;
@@ -214,7 +219,7 @@ export const DeviceDetail: React.FC<DeviceDetailProps> = ({ serialNumber, onBack
                 localStorage.setItem('incendo_last_gln', newGeo);
             }, (error) => {
                 console.error("Error securing geolocation:", error);
-                alert("Could not fetch location. Please ensure permissions are granted.");
+                alert("Could not fetch location. Please ensure location permissions are granted for this site in your browser settings.");
             });
         } else {
             alert("Geolocation is not supported by your browser.");
