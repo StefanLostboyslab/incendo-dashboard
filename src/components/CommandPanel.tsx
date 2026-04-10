@@ -625,7 +625,7 @@ export const CommandPanel: React.FC<{ targetSerial: string }> = ({ targetSerial 
                                 ))}
                             </div>
                             
-                            {(writeState === 'success' || writeState === 'error') && (
+                            {(writeState === 'success' || writeState === 'error') ? (
                                 <Button 
                                     type="button" 
                                     variant="secondary" 
@@ -633,6 +633,18 @@ export const CommandPanel: React.FC<{ targetSerial: string }> = ({ targetSerial 
                                     onClick={() => setWriteState('idle')}
                                 >
                                     Dismiss
+                                </Button>
+                            ) : (
+                                <Button 
+                                    type="button" 
+                                    variant="secondary" 
+                                    className="w-full text-xs py-1.5 text-tron-error border border-tron-error/30 hover:bg-tron-error/20"
+                                    onClick={() => {
+                                        setWriteState('idle');
+                                        publish(`incendo/devices/${targetSerial}/mode`, JSON.stringify({ mode: "IDLE" }));
+                                    }}
+                                >
+                                    Abort Pipeline
                                 </Button>
                             )}
                         </div>
