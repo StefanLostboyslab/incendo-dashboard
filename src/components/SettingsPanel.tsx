@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useMQTT } from '../store/MQTTContext';
 import { Button, Input, Card } from './UIComponents';
-import { Wifi, AlertTriangle, Activity } from 'lucide-react';
+import { Wifi, AlertTriangle, Activity, Users, ChevronDown } from 'lucide-react';
+import { useAuth } from '../store/AuthContext';
+import { fetchWhattCategories } from '../lib/whatt';
 
 export const SettingsPanel: React.FC = () => {
     const { connect, status, disconnect, publish } = useMQTT();
@@ -11,6 +13,27 @@ export const SettingsPanel: React.FC = () => {
 
     // Global EPCIS Settings
     const [globalBizLocation, setGlobalBizLocation] = useState('');
+
+    const { user, teams, activeTeam, setActiveTeam, token } = useAuth();
+    const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+    const [globalCategory, setGlobalCategory] = useState<string>('');
+
+    useEffect(() => {
+        if (!token) return;
+        fetchWhattCategories(token).then(cats => {
+            if (cats) setCategories(cats);
+        });
+    }, [token, activeTeam]);
+
+    useEffect(() => {
+        const savedCat = localStorage.getItem('incendo_global_category');
+        if (savedCat) setGlobalCategory(savedCat);
+    }, []);
+
+    const handleSaveCategory = (val: string) => {
+        setGlobalCategory(val);
+        localStorage.setItem('incendo_global_category', val);
+    };
 
     // Load saved settings on mount
     useEffect(() => {
@@ -197,6 +220,66 @@ export const SettingsPanel: React.FC = () => {
                             </Button>
                         </div>
                     </form>
+                </Card>
+
+                <Card className="border-tron-cyan/30 md:col-span-2">
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-3 pb-4 border-b border-tron-border/50">
+                            <Users className="text-tron-cyan" size={24} />
+                            <div>
+                                <h3 className="text-lg font-bold text-white">Whatt.io Workspace Configuration</h3>
+                                <p className="text-sm text-tron-muted">Select the active workspace and default product category for hardware commissioning.</p>
+                            </div>
+                        </div>
+
+                        {!user ? (
+                            <p className="text-sm text-tron-muted italic">Please log in via the top right widget to configure workspaces.</p>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2 relative z-50">
+                                    <label className="block text-xs font-mono text-tron-cyan/70 font-bold tracking-wider">ACTIVE TEAM WORKSPACE</label>
+                                    <div className="relative group/team dropdown-container">
+                                        <button className="bg-black/50 border border-tron-cyan/30 hover:border-tron-cyan/60 text-white text-sm rounded p-3 w-full text-left flex justify-between items-center transition-colors">
+                                            <span className="truncate">{teams.find(t => t.id.toString() === (activeTeam || user.current_team_id?.toString()))?.name || 'Select Team'}</span>
+                                            <ChevronDown size={14} className="text-tron-cyan shrink-0" />
+                                        </button>
+                                        <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#0a0f18] border border-tron-cyan/30 rounded-lg shadow-[0_5px_15px_rgba(0,0,0,0.5)] hidden group-hover/team:block hover:block">
+                                            {teams.map(t => {
+                                                const isSelected = (activeTeam || user.current_team_id?.toString()) === t.id.toString();
+                                                return (
+                                                    <button 
+                                                        key={t.id} 
+                                                        type="button"
+                                                        onClick={() => setActiveTeam(t.id.toString())} 
+                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-tron-cyan/20 transition-colors ${isSelected ? 'text-tron-cyan bg-tron-cyan/5 font-bold border-l-2 border-tron-cyan' : 'text-white/80 border-l-2 border-transparent'}`}
+                                                    >
+                                                        {t.name}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-tron-muted mt-1 leading-tight">Controls which Whatt.io account is used for analytics and permission gates during NFC operations.</p>
+                                </div>
+                                
+                                <div className="space-y-2 relative z-40">
+                                    <label className="block text-xs font-mono text-tron-cyan/70 font-bold tracking-wider">DEFAULT PRODUCT CATEGORY</label>
+                                    <select 
+                                        className="w-full bg-black/50 border border-tron-cyan/30 text-white text-sm rounded p-3 focus:outline-none focus:border-tron-cyan/60 transition-colors appearance-none cursor-pointer"
+                                        value={globalCategory}
+                                        onChange={(e) => handleSaveCategory(e.target.value)}
+                                        style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '16px' }}
+                                    >
+                                        <option value="" className="bg-gray-900 text-white/50">No Default Category</option>
+                                        {categories.map(c => (
+                                            <option key={c.id} value={c.id} className="bg-gray-900 text-white">{c.name}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[10px] text-tron-muted mt-1 leading-tight">Categories are auto-fetched securely based on the Active Workspace selected above.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </Card>
 
                 <div className="pt-6 border-t border-tron-border/30 md:col-span-2">

@@ -67,29 +67,7 @@ export const UserWidget: React.FC = () => {
 
             {isMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-64 bg-gray-900 border border-tron-cyan/20 rounded-lg shadow-neon-cyan z-50 overflow-hidden">
-                    <div className="p-3 border-b border-white/5 bg-black/40">
-                        <div className="text-xs text-tron-muted uppercase mb-1">Active Team</div>
-                        <div className="relative group/team dropdown-container">
-                            <button className="bg-black/50 border border-tron-cyan/30 hover:border-tron-cyan/60 text-white text-sm rounded p-2 w-full text-left flex justify-between items-center transition-colors">
-                                <span className="truncate">{teams.find(t => t.id.toString() === (activeTeam || user.current_team_id?.toString()))?.name || 'Select Team'}</span>
-                                <ChevronDown size={14} className="text-tron-cyan shrink-0" />
-                            </button>
-                            <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#0a0f18] border border-tron-cyan/30 rounded-lg shadow-[0_5px_15px_rgba(0,0,0,0.5)] z-[60] hidden group-hover/team:block hover:block">
-                                {teams.map(t => {
-                                    const isSelected = (activeTeam || user.current_team_id?.toString()) === t.id.toString();
-                                    return (
-                                        <button 
-                                            key={t.id} 
-                                            onClick={() => { setActiveTeam(t.id.toString()); setIsMenuOpen(false); }} 
-                                            className={`w-full text-left px-3 py-2 text-sm hover:bg-tron-cyan/20 transition-colors ${isSelected ? 'text-tron-cyan bg-tron-cyan/5 font-bold' : 'text-white/80'}`}
-                                        >
-                                            {t.name}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
+
                     <button 
                         onClick={() => { logout(); setIsMenuOpen(false); }}
                         className="w-full text-left px-4 py-3 text-sm text-tron-error hover:bg-tron-error/10 flex items-center gap-2 transition-colors"
