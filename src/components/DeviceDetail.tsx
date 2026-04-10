@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useDevices } from '../store/DeviceContext';
 import { useMQTT } from '../store/MQTTContext';
 import { ArrowLeft, Monitor, Trash2, Pencil, Activity, MapPin, Cpu, Bot, Copy, Check, LayoutTemplate, Download } from 'lucide-react';
@@ -570,76 +570,25 @@ export const DeviceDetail: React.FC<DeviceDetailProps> = ({ serialNumber, onBack
                                             const mb = device.hardwareModules?.motherboard === 'r4' ? 'Arduino UNO R4 WiFi' : 'Arduino UNO WiFi Rev2';
                                             const disp = device.hardwareModules?.display === 'st7789' ? 'ST7789' : device.hardwareModules?.display === 'st7735' ? 'ST7735' : device.hardwareModules?.display === 'oled1306' ? 'SSD1306' : 'None';
                                             
-                                            const fullPrompt = `I am building C++ firmware for an Incendo hardware device.
-Here is my exact hardware configuration:
-- Motherboard: ${mb}
-- Display: ${disp}
-- I2C Peripherals: ${i2c.length > 0 ? i2c.join(', ') : 'None'}
+                                            let displayFlag = 'DISPLAY_ST7789';
+                                            if (disp === 'SSD1306') displayFlag = 'DISPLAY_SSD1306';
+                                            else if (disp === 'ST7735') displayFlag = 'DISPLAY_ST7735';
+                                            else if (disp === 'None') displayFlag = 'DISPLAY_NONE';
+                                            
+                                            const scd30Flag = device.hardwareModules?.scd30 ? '\n#define USE_SCD30         // Adafruit SCD-30 CO2 Sensor' : '';
 
-Use the following fundamental C++ boilerplate as the base layout structure, and smartly inject additional #include statements, libraries, and logic to support the specific hardware modules listed above:
+                                            const fullPrompt = `/* 
+ * INCENDO HARDWARE CONFIGURATION
+ * Simply copy and replace the top section of your sketch_incendo_universal.ino
+ * with this exact block so it matches your physical hardware!
+ */
 
-\`\`\`cpp
-#include <Adafruit_GFX.h>
-${disp !== 'None' && disp !== 'SSD1306' ? `#include <Adafruit_${disp}.h>\n` : ''}${device.hardwareModules?.pn532 ? '#include <Adafruit_PN532.h>\n' : ''}#include <SPI.h>
-#include <WiFiS3.h>
-#include <PubSubClient.h>
-#include <ArduinoJson.h>
-#include <Wire.h>
-#include <OTAUpdate.h>
-
-#define FIRMWARE_VERSION "1.61"
-OTAUpdate ota;
-
-${disp !== 'None' && disp !== 'SSD1306' ? `// ---------------- Display pins ----------------
-#define TFT_CS     10
-#define TFT_RST    -1
-#define TFT_DC      8
-Adafruit_${disp} tft = Adafruit_${disp}(TFT_CS, TFT_DC, TFT_RST);
-` : ''}
-${device.hardwareModules?.pn532 ? `// ---------------- NFC Module ----------------
-Adafruit_PN532 nfc(SDA, SCL);
-` : ''}
-// NFC URI Prefix Map
-const char* URI_PREFIX_MAP[] = {
-  "", "http://www.", "https://www.", "http://", "https://", "tel:",
-  "mailto:", "ftp://anonymous:anonymous@", "ftp://ftp.", "ftps://",
-  "sftp://", "smb://", "nfs://", "ftp://", "dav://", "news:", "telnet://",
-  "imap:", "rtsp://", "urn:", "pop:", "sip:", "sips:", "tftp:", "btspp://",
-  "btl2cap://", "btgoep://", "tcpobex://", "irdaobex://", "file://",
-  "urn:epc:id:", "urn:epc:tag:", "urn:epc:pat:", "urn:epc:raw:",
-  "urn:epc:", "urn:nfc:"
-};
-
-// ---------------- Wi-Fi & MQTT ----------------
-const char* ssid     = "Skywalker_IoT";
-const char* password = "Dubai2026";
-const char* mqtt_user = "arduino";
-const char* mqtt_pass = "2look@R2D2";
-const char* mqtt_server = "192.168.50.65";
-const int   mqtt_port   = 1883;
-
-// ---------------- Hardware Pins ----------------
-const int greenLedPin = 4;
-const int redLedPin = 5;
-const int BTN_READ = 2;
-const int BTN_WRITE = 3;
-const int BTN_SET = 0;
-const int BTN_WIFI = 1;
-
-WiFiClient wifiClient;
-PubSubClient mqtt(wifiClient);
-
-void setup() {
-  Serial.begin(115200);
-  // Optional: setup logic here...
-}
-
-void loop() {
-  // Custom loop logic...
-}
-\`\`\`
-
-Generate the complete \`setup()\` and \`loop()\` routines integrating these components perfectly so they can be securely flashed onto the unit.`;
+// ==========================================
+// HARDWARE DISPLAY CONFIGURATION
+// ==========================================
+#define ${displayFlag}${scd30Flag}
+// ==========================================
+`;
 
                                             navigator.clipboard.writeText(fullPrompt);
                                             setCopiedPrompt(true);

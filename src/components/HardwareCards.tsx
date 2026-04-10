@@ -74,12 +74,32 @@ export const St25dvCard: React.FC<{ targetSerial: string }> = ({ targetSerial })
 };
 
 
-export const Scd30Card: React.FC<{ targetSerial: string }> = () => {
-    // These values would normally be fetched from the device via MQTT state or Context
-    // For now we will mock them for the purpose of the UI template based on the requirements.
-    const co2 = 400; // ppm
-    const temp = 22.5; // °C
-    const humidity = 45; // %
+export const Scd30Card: React.FC<{ targetSerial: string }> = ({ targetSerial }) => {
+    const { subscribe, unsubscribe, lastMessage, status } = useMQTT();
+    
+    const [co2, setCo2] = useState<number | null>(null);
+    const [temp, setTemp] = useState<number | null>(null);
+    const [humidity, setHumidity] = useState<number | null>(null);
+
+    React.useEffect(() => {
+        if (!targetSerial || status !== 'connected') return;
+        const topic = `incendo/telemetry/${targetSerial}`;
+        subscribe(topic);
+        return () => unsubscribe(topic);
+    }, [targetSerial, subscribe, unsubscribe, status]);
+
+    React.useEffect(() => {
+        if (lastMessage?.topic === `incendo/telemetry/${targetSerial}`) {
+            try {
+                const data = JSON.parse(lastMessage.payload);
+                if (data.co2 !== undefined) setCo2(Math.round(data.co2));
+                if (data.temp !== undefined) setTemp(data.temp);
+                if (data.humidity !== undefined) setHumidity(data.humidity);
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+    }, [lastMessage, targetSerial]);
 
     return (
         <Card className="border-tron-cyan/50 shadow-neon-cyan/20 p-5 bg-black/40">
