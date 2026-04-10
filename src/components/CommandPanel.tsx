@@ -387,6 +387,9 @@ export const CommandPanel: React.FC<{ targetSerial: string }> = ({ targetSerial 
         };
 
         const teamId = user.current_team_id || 1;
+        appendLog(`Giving Whatt.io Database 3.5s to digest Unit creation before Webhook...`);
+        await new Promise(resolve => setTimeout(resolve, 3500));
+        
         appendLog(`Broadcasting GS1 Webhooks to Playground & Analytics...`);
         const dispatchResult = await dispatchEpcisEvent(token, teamId, epcisPayload);
         
