@@ -5,7 +5,7 @@ import { Wifi, AlertTriangle, Activity } from 'lucide-react';
 
 export const SettingsPanel: React.FC = () => {
     const { connect, status, disconnect, publish } = useMQTT();
-    const [brokerUrl, setBrokerUrl] = useState('ws://localhost:1884');
+    const [brokerUrl, setBrokerUrl] = useState(`ws://${window.location.hostname}:1884`);
     const [username, setUsername] = useState('arduino');
     const [password, setPassword] = useState('2look@R2D2');
 
@@ -19,9 +19,9 @@ export const SettingsPanel: React.FC = () => {
             const settings = JSON.parse(saved);
             
             // If the cached URL is the old homeassistant defaults, override it with the new local Docker broker
-            let loadedUrl = settings.brokerUrl || 'ws://localhost:1884';
-            if (loadedUrl.includes('homeassistant.local') || loadedUrl.includes('192.168.50.65')) {
-                loadedUrl = 'ws://localhost:1884';
+            let loadedUrl = settings.brokerUrl || `ws://${window.location.hostname}:1884`;
+            if (loadedUrl.includes('homeassistant.local') || loadedUrl.includes('192.168.50.65') || loadedUrl.includes('localhost')) {
+                loadedUrl = `ws://${window.location.hostname}:1884`;
             }
             
             setBrokerUrl(loadedUrl);
@@ -95,7 +95,7 @@ export const SettingsPanel: React.FC = () => {
                         <Wifi className="text-tron-cyan" size={24} />
                         <div>
                             <h3 className="text-lg font-bold text-white">MQTT Broker Connection</h3>
-                            <p className="text-sm text-tron-muted">Configure the WebSocket connection to your local Incendo Docker broker.</p>
+                            <p className="text-sm text-tron-muted">This tells your web browser how to communicate with the central message server running on your Arduino UNO Q.</p>
                         </div>
                     </div>
 
@@ -103,9 +103,8 @@ export const SettingsPanel: React.FC = () => {
                         <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex gap-3">
                             <AlertTriangle className="text-yellow-500 shrink-0" size={20} />
                             <p className="text-xs text-yellow-500/90 font-mono leading-relaxed">
-                                IMPORTANT: Your MQTT broker must have WebSockets enabled.
-                                <br />Standard TCP/IP ports (1883) will NOT work in the browser.
-                                <br />Your WS ports: <strong>1884 (WS)</strong> or <strong>8884 (WSS)</strong>.
+                                IMPORTANT: Since the dashboard runs in your browser, it uses WebSockets (ws://) instead of standard TCP.
+                                <br />By default, this should point to the exact same IP you typed in the URL bar, but on port <strong>1884</strong>.
                             </p>
                         </div>
 

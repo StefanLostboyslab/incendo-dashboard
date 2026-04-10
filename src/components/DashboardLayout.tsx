@@ -47,7 +47,7 @@ export const DashboardLayout: React.FC<{
                 <div className="p-6 border-b border-tron-border">
                     <h1 className="text-2xl font-orbitron font-bold text-transparent bg-clip-text bg-gradient-to-r from-tron-cyan to-blue-500 tracking-widest drop-shadow-[0_0_10px_rgba(0,243,255,0.3)]">
                         INCENDO
-                        <span className="text-xs block text-tron-muted font-mono tracking-widest mt-1 opacity-70">COMMAND CENTER</span>
+                        <span className="text-xs block text-tron-muted font-mono tracking-widest mt-1 opacity-70">QOMMAND CENTER (running on Arduino Q)</span>
                     </h1>
                 </div>
 
@@ -78,7 +78,7 @@ export const DashboardLayout: React.FC<{
                     </div>
                     <div className="flex items-center gap-4">
                         <UserWidget />
-                        <div className="text-xs font-mono text-tron-muted">V2.3.4</div>
+                        <div className="text-xs font-mono text-tron-muted">V3.0.0-Q</div>
                     </div>
                 </header>
 

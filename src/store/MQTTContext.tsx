@@ -66,11 +66,11 @@ export const MQTTProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (saved) {
                 try {
                     const settings = JSON.parse(saved);
-                    let loadedUrl = settings.brokerUrl || 'ws://localhost:1884';
+                    let loadedUrl = settings.brokerUrl || `ws://${window.location.hostname}:1884`;
                     
                     // Legacy migration
-                    if (loadedUrl.includes('homeassistant.local') || loadedUrl.includes('192.168.50.65')) {
-                        loadedUrl = 'ws://localhost:1884';
+                    if (loadedUrl.includes('homeassistant.local') || loadedUrl.includes('192.168.50.65') || loadedUrl.includes('localhost')) {
+                        loadedUrl = `ws://${window.location.hostname}:1884`;
                     }
                     
                     const url = new URL(loadedUrl);
