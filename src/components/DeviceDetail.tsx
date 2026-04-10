@@ -143,6 +143,24 @@ export const DeviceDetail: React.FC<DeviceDetailProps> = ({ serialNumber, onBack
     
     const [deviceType, setDeviceType] = useState(device?.epcis?.deviceType || 'whatt.io incendo NFC');
 
+    useEffect(() => {
+        setLocation(device?.customLocation || device?.location || '');
+        if (device?.epcis?.gln) setGln(device.epcis.gln);
+        setDeviceType(device?.epcis?.deviceType || 'whatt.io incendo NFC');
+        
+        if (device?.epcis?.readPoint) {
+            const parts = device.epcis.readPoint.split('whattio:readpoint:');
+            if (parts.length > 1) {
+                const subParts = parts[1].split('/');
+                setReadPointFriendly(subParts.length > 1 ? subParts[1] : subParts[0]);
+            } else {
+                setReadPointFriendly(device.epcis.readPoint);
+            }
+        } else {
+            setReadPointFriendly('');
+        }
+    }, [device?.serialNumber]);
+
     // Hardware Config States
     const [hwMotherboard, setHwMotherboard] = useState<string>(device?.hardwareModules?.motherboard || 'r2');
     const [hwDisplay, setHwDisplay] = useState<string>(device?.hardwareModules?.display || 'none');
@@ -335,14 +353,36 @@ export const DeviceDetail: React.FC<DeviceDetailProps> = ({ serialNumber, onBack
                             </h2>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input label="Device Location" value={location} onChange={(e: any) => setLocation(e.target.value)} placeholder="e.g. First Floor" />
-                                <Input label="Read Point ID" value={readPointFriendly} onChange={(e: any) => setReadPointFriendly(e.target.value)} placeholder="e.g. Entry Turnstile" />
+                                <Input label="Device Location (Physical)" value={location} onChange={(e: any) => setLocation(e.target.value)} placeholder="e.g. First Floor Turnstile" />
                                 
-
+                                <div className="space-y-1">
+                                    <Input label="Read Point ID" value={readPointFriendly} onChange={(e: any) => setReadPointFriendly(e.target.value)} placeholder="e.g. Turnstile-A" />
+                                    <p className="text-[9px] font-mono text-tron-cyan/70 leading-tight pt-1">
+                                        *GS1 EPCIS 2.0: Unique ID for this specific scanner. Will be automatically prefixed with your Global Business Location.
+                                    </p>
+                                </div>
                                 
-                                <div className="flex items-end gap-2">
+                                <div className="md:col-span-2 mt-2 p-3 bg-tron-cyan/5 border border-tron-cyan/20 rounded-md">
+                                    <p className="text-[10px] uppercase font-bold text-tron-cyan mb-1 flex items-center gap-2">
+                                        <Activity size={10} /> GS1 BUSINESS LOCATION (Inherited from Settings)
+                                    </p>
+                                    <p className="text-xs font-mono text-white">
+                                        {(() => {
+                                            try {
+                                                const saved = localStorage.getItem('incendo_global_epcis');
+                                                if (saved) return JSON.parse(saved).bizLocation || 'whattio:bizloc:unconfigured';
+                                            } catch (e) {}
+                                            return 'whattio:bizloc:unconfigured';
+                                        })()}
+                                    </p>
+                                    <p className="text-[9px] font-mono text-tron-muted mt-1 leading-tight">
+                                        Per EPCIS 2.0, the Business Location (e.g. the entire facility) is applied globally to all scanners from the Main Settings panel.
+                                    </p>
+                                </div>
+                                
+                                <div className="flex items-end gap-2 mt-2">
                                     <div className="flex-1">
-                                        <Input label="GLN / Geo URI" value={gln} onChange={(e: any) => setGln(e.target.value)} placeholder="geo:0.0,0.0" />
+                                        <Input label="GLN / Geo Coordinates" value={gln} onChange={(e: any) => setGln(e.target.value)} placeholder="geo:0.0,0.0" />
                                     </div>
                                     <Button onClick={handleLocateTarget} variant="secondary" className="mb-px px-3 py-2.5 border-tron-cyan/50 hover:bg-tron-cyan/20 h-[42px]" title="Fetch current coordinates">
                                         <MapPin size={20} className="text-tron-cyan" />

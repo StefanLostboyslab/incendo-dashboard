@@ -42,10 +42,10 @@ export const DppWidget: React.FC<DppWidgetProps> = ({ title, dppUrl, isActive, o
             onClick={onToggle}
             className={`
                 relative flex flex-col justify-between overflow-hidden cursor-pointer
-                border transition-all duration-300 rounded-lg min-h-[220px]
+                border transition-all duration-300 rounded-lg min-h-[140px]
                 ${isActive 
                     ? 'border-tron-cyan bg-tron-cyan/10 ring-2 ring-tron-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)] scale-[1.02] z-10' 
-                    : 'border-white/5 bg-black/80 hover:border-tron-cyan/40 hover:bg-black/60 opacity-50 grayscale hover:opacity-100 hover:grayscale-0'
+                    : 'border-white/5 bg-black/80 hover:border-tron-cyan/40 hover:bg-black/60 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'
                 }
             `}
         >
@@ -58,7 +58,7 @@ export const DppWidget: React.FC<DppWidgetProps> = ({ title, dppUrl, isActive, o
             </div>
 
             {/* Media / Header area */}
-            <div className="h-[150px] w-full relative flex items-center justify-center p-0">
+            <div className="h-[90px] w-full relative flex items-center justify-center p-0 bg-black/40">
                 {loading ? (
                     <Loader2 className="animate-spin text-tron-cyan/50" size={20} />
                 ) : data?.main_image || data?.images?.[0] ? (
@@ -68,8 +68,20 @@ export const DppWidget: React.FC<DppWidgetProps> = ({ title, dppUrl, isActive, o
                         className={`w-full h-full object-cover object-center rounded-t-lg drop-shadow-[0_0_8px_rgba(0,0,0,0.8)] ${isActive ? 'brightness-110' : 'brightness-75'} transition-all duration-300`}
                     />
                 ) : (
-                    <div className="w-full h-full m-2 border border-dashed border-tron-cyan/20 flex flex-col items-center justify-center opacity-40 bg-tron-cyan/5 rounded">
-                        <span className="text-[9px] uppercase text-tron-cyan tracking-widest px-2 text-center leading-tight">{title}</span>
+                    <div className="w-full h-full flex flex-col items-center justify-center opacity-30">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-tron-cyan mb-1 drop-shadow-[0_0_5px_rgba(0,255,255,0.5)]">
+                            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                            <rect x="9" y="9" width="6" height="6"></rect>
+                            <line x1="9" y1="1" x2="9" y2="4"></line>
+                            <line x1="15" y1="1" x2="15" y2="4"></line>
+                            <line x1="9" y1="20" x2="9" y2="23"></line>
+                            <line x1="15" y1="20" x2="15" y2="23"></line>
+                            <line x1="20" y1="9" x2="23" y2="9"></line>
+                            <line x1="20" y1="14" x2="23" y2="14"></line>
+                            <line x1="1" y1="9" x2="4" y2="9"></line>
+                            <line x1="1" y1="14" x2="4" y2="14"></line>
+                        </svg>
+                        <span className="text-[9px] uppercase text-tron-cyan tracking-widest px-2 text-center leading-tight mt-1">{title}</span>
                     </div>
                 )}
             </div>
