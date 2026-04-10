@@ -559,15 +559,6 @@ export const DeviceDetail: React.FC<DeviceDetailProps> = ({ serialNumber, onBack
                                         variant="secondary" 
                                         className="h-8 text-xs py-1 px-3 border-tron-cyan/50 hover:bg-tron-cyan/20"
                                         onClick={() => {
-                                            const i2c = [];
-                                            if (device.hardwareModules?.pn532) i2c.push('PN532 NFC Module');
-                                            if (device.hardwareModules?.st25dv) i2c.push('ST25DV16 EEPROM');
-                                            if (device.hardwareModules?.scd30) i2c.push('SCD-30 CO2/Temp');
-                                            if (device.hardwareModules?.qrReader) i2c.push('I2C QR Scanner');
-                                            if (device.hardwareModules?.dfRobotRgb) i2c.push('DFRobot RGB LED Driver');
-                                            if (device.hardwareModules?.elektrokitMosfet) i2c.push('Elektrokit 4-Ch Mosfet');
-                                            
-                                            const mb = device.hardwareModules?.motherboard === 'r4' ? 'Arduino UNO R4 WiFi' : 'Arduino UNO WiFi Rev2';
                                             const disp = device.hardwareModules?.display === 'st7789' ? 'ST7789' : device.hardwareModules?.display === 'st7735' ? 'ST7735' : device.hardwareModules?.display === 'oled1306' ? 'SSD1306' : 'None';
                                             
                                             let displayFlag = 'DISPLAY_ST7789';
